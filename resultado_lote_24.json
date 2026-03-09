@@ -1,0 +1,684 @@
+{
+  "ok": true,
+  "total": 24,
+  "com_multas": 13,
+  "sem_multas": 11,
+  "erros": 0,
+  "resultados": [
+    {
+      "placa": "THS8J86",
+      "renavam": "01469605071",
+      "possui_multas": true,
+      "quantidade_multas": 12,
+      "detalhes_multas": [
+        {
+          "ait": "A600493543",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "07/02/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "A600488963",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "02/02/2026",
+          "valor_original": "R$ 195,23",
+          "valor_a_pagar": "R$ 156,18"
+        },
+        {
+          "ait": "A600488246",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "01/02/2026",
+          "valor_original": "R$ 195,23",
+          "valor_a_pagar": "R$ 156,18"
+        },
+        {
+          "ait": "M601059659",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "01/02/2026",
+          "valor_original": "R$ 195,23",
+          "valor_a_pagar": "R$ 156,18"
+        },
+        {
+          "ait": "A600488086",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "31/01/2026",
+          "valor_original": "R$ 880,41",
+          "valor_a_pagar": "R$ 704,33"
+        },
+        {
+          "ait": "M601059104",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "31/01/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "M601055152",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "27/01/2026",
+          "valor_original": "R$ 195,23",
+          "valor_a_pagar": "R$ 156,18"
+        },
+        {
+          "ait": "M601054829",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "27/01/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "M601044643",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "18/01/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "M601043879",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "17/01/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "M601038274",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "12/01/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "R$ 0.00",
+          "motivo": "Infração de trânsito",
+          "data_infracao": "",
+          "valor_original": "",
+          "valor_a_pagar": ""
+        }
+      ],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:25:05.641Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer",
+      "_cache": true
+    },
+    {
+      "placa": "THV7H56",
+      "renavam": "01469296346",
+      "possui_multas": false,
+      "quantidade_multas": 0,
+      "detalhes_multas": [],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:27:21.153Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer",
+      "_cache": true
+    },
+    {
+      "placa": "THO7B56",
+      "renavam": "01469290879",
+      "possui_multas": false,
+      "quantidade_multas": 0,
+      "detalhes_multas": [],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:27:58.453Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer",
+      "_cache": true
+    },
+    {
+      "placa": "THS7H76",
+      "renavam": "01469269187",
+      "possui_multas": false,
+      "quantidade_multas": 0,
+      "detalhes_multas": [],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:28:35.370Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer",
+      "_cache": true
+    },
+    {
+      "placa": "THP5J26",
+      "renavam": "01469292235",
+      "possui_multas": false,
+      "quantidade_multas": 0,
+      "detalhes_multas": [],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:29:12.263Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer",
+      "_cache": true
+    },
+    {
+      "placa": "THT1F26",
+      "renavam": "01469605136",
+      "possui_multas": false,
+      "quantidade_multas": 0,
+      "detalhes_multas": [],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:29:49.070Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer",
+      "_cache": true
+    },
+    {
+      "placa": "THT3F56",
+      "renavam": "01466310550",
+      "possui_multas": true,
+      "quantidade_multas": 7,
+      "detalhes_multas": [
+        {
+          "ait": "M601082917",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "23/02/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "N000406385",
+          "motivo": "MULTA, POR NAO IDENTIFICACAO DO CONDUTOR INFRATOR,",
+          "data_infracao": "18/02/2026",
+          "valor_original": "R$ 260,32",
+          "valor_a_pagar": "R$ 208,26"
+        },
+        {
+          "ait": "M601075415",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "16/02/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "M601064599",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "06/02/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "M601035556",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "09/01/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "V607988511",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "08/12/2025",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "R$ 0.00",
+          "motivo": "Infração de trânsito",
+          "data_infracao": "",
+          "valor_original": "",
+          "valor_a_pagar": ""
+        }
+      ],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:30:47.001Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer"
+    },
+    {
+      "placa": "THNOD46",
+      "renavam": "01466309196",
+      "possui_multas": false,
+      "quantidade_multas": 0,
+      "detalhes_multas": [],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:31:41.930Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer"
+    },
+    {
+      "placa": "THX5H16",
+      "renavam": "01469295153",
+      "possui_multas": true,
+      "quantidade_multas": 2,
+      "detalhes_multas": [
+        {
+          "ait": "A600493939",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "11/02/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "R$ 0.00",
+          "motivo": "Infração de trânsito",
+          "data_infracao": "",
+          "valor_original": "",
+          "valor_a_pagar": ""
+        }
+      ],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:32:25.791Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer"
+    },
+    {
+      "placa": "THZ5I86",
+      "renavam": "01469547730",
+      "possui_multas": true,
+      "quantidade_multas": 5,
+      "detalhes_multas": [
+        {
+          "ait": "M601055490",
+          "motivo": "AVANCAR O SINAL VERMELHO DO SEMAFORO - FISCALIZACA",
+          "data_infracao": "28/01/2026",
+          "valor_original": "R$ 293,47",
+          "valor_a_pagar": "R$ 234,78"
+        },
+        {
+          "ait": "S608124464",
+          "motivo": "AVANCAR O SINAL VERMELHO DO SEMAFORO - FISCALIZACA",
+          "data_infracao": "22/01/2026",
+          "valor_original": "R$ 293,47",
+          "valor_a_pagar": "R$ 234,78"
+        },
+        {
+          "ait": "S608108668",
+          "motivo": "AVANCAR O SINAL VERMELHO DO SEMAFORO - FISCALIZACA",
+          "data_infracao": "17/01/2026",
+          "valor_original": "R$ 293,47",
+          "valor_a_pagar": "R$ 234,78"
+        },
+        {
+          "ait": "VM00361254",
+          "motivo": "TRANSITAR NA FAIXA OU VIA EXCLUSIVA REGULAM. P/ TR",
+          "data_infracao": "05/01/2026",
+          "valor_original": "R$ 293,47",
+          "valor_a_pagar": "R$ 234,78"
+        },
+        {
+          "ait": "R$ 0.00",
+          "motivo": "Infração de trânsito",
+          "data_infracao": "",
+          "valor_original": "",
+          "valor_a_pagar": ""
+        }
+      ],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:33:09.725Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer"
+    },
+    {
+      "placa": "TIAOF36",
+      "renavam": "01469297911",
+      "possui_multas": false,
+      "quantidade_multas": 0,
+      "detalhes_multas": [],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:34:05.478Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer"
+    },
+    {
+      "placa": "THN1E86",
+      "renavam": "01466309838",
+      "possui_multas": true,
+      "quantidade_multas": 2,
+      "detalhes_multas": [
+        {
+          "ait": "A600485091",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "24/01/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "R$ 0.00",
+          "motivo": "Infração de trânsito",
+          "data_infracao": "",
+          "valor_original": "",
+          "valor_a_pagar": ""
+        }
+      ],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:34:50.685Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer"
+    },
+    {
+      "placa": "THV5C16",
+      "renavam": "01469297270",
+      "possui_multas": false,
+      "quantidade_multas": 0,
+      "detalhes_multas": [],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:35:31.173Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer"
+    },
+    {
+      "placa": "THQ6C56",
+      "renavam": "01469548752",
+      "possui_multas": false,
+      "quantidade_multas": 0,
+      "detalhes_multas": [],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:36:16.909Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer"
+    },
+    {
+      "placa": "THN7E76",
+      "renavam": "01466310615",
+      "possui_multas": true,
+      "quantidade_multas": 3,
+      "detalhes_multas": [
+        {
+          "ait": "V608138678",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "26/01/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "V608118785",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "19/01/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "R$ 0.00",
+          "motivo": "Infração de trânsito",
+          "data_infracao": "",
+          "valor_original": "",
+          "valor_a_pagar": ""
+        }
+      ],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:37:01.027Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer"
+    },
+    {
+      "placa": "TIJ5F26",
+      "renavam": "01469253485",
+      "possui_multas": true,
+      "quantidade_multas": 4,
+      "detalhes_multas": [
+        {
+          "ait": "VM00455936",
+          "motivo": "DIRIGIR O VEIC USANDO CALCADO QUE Ñ SE FIRME NOS P",
+          "data_infracao": "01/03/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "V010384453",
+          "motivo": "ESTACIONAR EM LOCAL/HORARIO PROIBIDO ESPECIFICAMEN",
+          "data_infracao": "11/01/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "V608038696",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "25/12/2025",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "R$ 0.00",
+          "motivo": "Infração de trânsito",
+          "data_infracao": "",
+          "valor_original": "",
+          "valor_a_pagar": ""
+        }
+      ],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:37:44.692Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer"
+    },
+    {
+      "placa": "THQ8C26",
+      "renavam": "01469550277",
+      "possui_multas": true,
+      "quantidade_multas": 3,
+      "detalhes_multas": [
+        {
+          "ait": "V608108500",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "16/01/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "V608104138",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "15/01/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "R$ 0.00",
+          "motivo": "Infração de trânsito",
+          "data_infracao": "",
+          "valor_original": "",
+          "valor_a_pagar": ""
+        }
+      ],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:38:28.407Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer"
+    },
+    {
+      "placa": "THQ7E96",
+      "renavam": "01469549678",
+      "possui_multas": true,
+      "quantidade_multas": 2,
+      "detalhes_multas": [
+        {
+          "ait": "M601062412",
+          "motivo": "AVANCAR O SINAL VERMELHO DO SEMAFORO - FISCALIZACA",
+          "data_infracao": "05/02/2026",
+          "valor_original": "R$ 293,47",
+          "valor_a_pagar": "R$ 234,78"
+        },
+        {
+          "ait": "R$ 0.00",
+          "motivo": "Infração de trânsito",
+          "data_infracao": "",
+          "valor_original": "",
+          "valor_a_pagar": ""
+        }
+      ],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:39:12.237Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer"
+    },
+    {
+      "placa": "THT1H96",
+      "renavam": "01469270150",
+      "possui_multas": true,
+      "quantidade_multas": 2,
+      "detalhes_multas": [
+        {
+          "ait": "S080015257",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "10/01/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "R$ 0.00",
+          "motivo": "Infração de trânsito",
+          "data_infracao": "",
+          "valor_original": "",
+          "valor_a_pagar": ""
+        }
+      ],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:39:55.879Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer"
+    },
+    {
+      "placa": "THP1G96",
+      "renavam": "01469291603",
+      "possui_multas": true,
+      "quantidade_multas": 2,
+      "detalhes_multas": [
+        {
+          "ait": "E030404985",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "19/02/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "R$ 0.00",
+          "motivo": "Infração de trânsito",
+          "data_infracao": "",
+          "valor_original": "",
+          "valor_a_pagar": ""
+        }
+      ],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:40:39.518Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer"
+    },
+    {
+      "placa": "THV1H96",
+      "renavam": "01469296826",
+      "possui_multas": true,
+      "quantidade_multas": 2,
+      "detalhes_multas": [
+        {
+          "ait": "SC01159047",
+          "motivo": "EXECUTAR OPERACAO DE RETORNO EM LOCAIS PROIBIDOS P",
+          "data_infracao": "24/02/2026",
+          "valor_original": "R$ 293,47",
+          "valor_a_pagar": "R$ 234,78"
+        },
+        {
+          "ait": "R$ 0.00",
+          "motivo": "Infração de trânsito",
+          "data_infracao": "",
+          "valor_original": "",
+          "valor_a_pagar": ""
+        }
+      ],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:41:23.141Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer"
+    },
+    {
+      "placa": "TIL1G56",
+      "renavam": "01469551028",
+      "possui_multas": false,
+      "quantidade_multas": 0,
+      "detalhes_multas": [],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:42:00.622Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer"
+    },
+    {
+      "placa": "THQ3E06",
+      "renavam": "01469289862",
+      "possui_multas": true,
+      "quantidade_multas": 10,
+      "detalhes_multas": [
+        {
+          "ait": "M601081394",
+          "motivo": "AVANCAR O SINAL VERMELHO DO SEMAFORO - FISCALIZACA",
+          "data_infracao": "22/02/2026",
+          "valor_original": "R$ 293,47",
+          "valor_a_pagar": "R$ 234,78"
+        },
+        {
+          "ait": "AS01768673",
+          "motivo": "ESTACIONAR EM LOCAL/HORARIO PROIBIDO ESPECIFICAMEN",
+          "data_infracao": "20/02/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "M601074555",
+          "motivo": "AVANCAR O SINAL VERMELHO DO SEMAFORO - FISCALIZACA",
+          "data_infracao": "15/02/2026",
+          "valor_original": "R$ 293,47",
+          "valor_a_pagar": "R$ 234,78"
+        },
+        {
+          "ait": "M601071049",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "11/02/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "M601063713",
+          "motivo": "AVANCAR O SINAL VERMELHO DO SEMAFORO - FISCALIZACA",
+          "data_infracao": "06/02/2026",
+          "valor_original": "R$ 293,47",
+          "valor_a_pagar": "R$ 234,78"
+        },
+        {
+          "ait": "VM00410038",
+          "motivo": "TRANSITAR COM O VEICULO EM CICLOVIAS, CICLOFAIXAS",
+          "data_infracao": "03/02/2026",
+          "valor_original": "R$ 880,41",
+          "valor_a_pagar": "R$ 704,33"
+        },
+        {
+          "ait": "M601054407",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "27/01/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "M601054452",
+          "motivo": "TRANSITAR EM VELOCIDADE SUPERIOR A MAXIMA PERMITID",
+          "data_infracao": "27/01/2026",
+          "valor_original": "R$ 130,16",
+          "valor_a_pagar": "R$ 104,13"
+        },
+        {
+          "ait": "A600472161",
+          "motivo": "TRANSITAR NA FAIXA OU VIA EXCLUSIVA REGULAM. P/ TR",
+          "data_infracao": "05/01/2026",
+          "valor_original": "R$ 293,47",
+          "valor_a_pagar": "R$ 234,78"
+        },
+        {
+          "ait": "R$ 0.00",
+          "motivo": "Infração de trânsito",
+          "data_infracao": "",
+          "valor_original": "",
+          "valor_a_pagar": ""
+        }
+      ],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:42:44.390Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer"
+    },
+    {
+      "placa": "TIJ7G26",
+      "renavam": "01469299507",
+      "possui_multas": false,
+      "quantidade_multas": 0,
+      "detalhes_multas": [],
+      "erro": null,
+      "consultado_em": "2026-03-08T21:43:20.913Z",
+      "fonte": "https://sistemas.detran.ce.gov.br/central via Puppeteer",
+      "_metodo": "puppeteer"
+    }
+  ]
+}

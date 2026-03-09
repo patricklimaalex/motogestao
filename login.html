@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>MotoGestão - Entrar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Outfit:wght@500;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #020617;
+            --bg-card: #0f172a;
+            --border: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --danger: #ef4444;
+            --font-body: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-brand: 'Outfit', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-body);
+        }
+
+        body {
+            background: var(--bg-base);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .brand {
+            font-family: var(--font-brand);
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-main);
+            text-align: center;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            background: var(--text-main);
+            color: var(--bg-card);
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-size: 16px;
+            letter-spacing: -0.05em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .link {
+            color: var(--accent);
+            background: none;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: none;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            color: #fca5a5;
+        }
+
+        #view-login,
+        #view-onboarding {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container" id="view-login" style="display:block">
+        <div class="brand">
+            <div class="brand-icon">MG</div>
+            MotoGestão
+        </div>
+        <div class="subtitle">Faça login ou crie sua conta para começar.</div>
+
+        <div class="alert" id="auth-error"></div>
+
+        <form id="login-form">
+            <div class="form-group">
+                <label>E-mail</label>
+                <input type="email" id="email" required placeholder="seu@email.com">
+            </div>
+            <div class="form-group">
+                <label>Senha</label>
+                <input type="password" id="password" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn" id="btn-submit">Entrar / Cadastrar</button>
+        </form>
+
+        <div style="text-align:center;margin-top:24px;font-size:12px;color:var(--text-muted)">
+            Se o e-mail não existir, uma conta será criada automaticamente.
+        </div>
+    </div>
+
+    <div class="container" id="view-onboarding">
+        <div class="brand" style="margin-bottom:24px">🎉 Bem-vindo!</div>
+        <div style="text-align:center;margin-bottom:24px;color:var(--text-main);font-size:15px">
+            Você não possui nenhuma empresa vinculada.<br>Crie sua empresa agora para acessar a plataforma.
+        </div>
+
+        <div class="alert" id="onboard-error"></div>
+
+        <form id="onboard-form">
+            <div class="form-group">
+                <label>Nome da sua Empresa (Ou Nome Fantasia)</label>
+                <input type="text" id="empresa-nome" required placeholder="Ex: Alexco Locações">
+            </div>
+            <button type="submit" class="btn" id="btn-onboard">Criar Empresa & Assinar</button>
+        </form>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+    <script>
+        const SUPA_URL = "https://zxrwgdovhesqlcikeuoi.supabase.co"; // SUBSTTITUIR PELA URL DO APP
+        const SUPA_KEY = "sb_publishable_IGybkyyyTYqh-u69AOG93Q_WTHHu3uY"; // SUBSTITUIR PELA KEY
+        const STRIPE_PRICE_ID = 'price_XXXXXX_YOUR_STRIPE_PRICE_ID'; // SUBSTITUIR
+
+        const db = window.supabase.createClient(SUPA_URL, SUPA_KEY, {
+            auth: { persistSession: true, storageKey: 'motos-saas-auth' }
+        });
+
+        const vLogin = document.getElementById('view-login');
+        const vOnboarding = document.getElementById('view-onboarding');
+        const errAuth = document.getElementById('auth-error');
+        const errOnb = document.getElementById('onboard-error');
+
+        function showError(el, msg) {
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        async function checkUserRouting() {
+            const { data: { session } } = await db.auth.getSession();
+            if (!session) return; // Fica no login
+
+            const user = session.user;
+
+            // 1. É Admin Master?
+            if (user.email === 'admin@motogestao.com' || user.email === 'patrick@alexco.com.br') {
+                window.location.href = 'admin.html';
+                return;
+            }
+
+            // 2. Checa se o usuário atual pertence a alguma empresa
+            const { data: membros, error } = await db.from('empresa_membros').select('empresa_id').eq('user_id', user.id);
+
+            if (membros && membros.length > 0) {
+                // Já tem empresa. Vai pro App.
+                window.location.href = 'app.html';
+            } else {
+                // Não tem empresa. Mostra Onboarding.
+                vLogin.style.display = 'none';
+                vOnboarding.style.display = 'block';
+            }
+        }
+
+        // Inicializa verificando rota
+        checkUserRouting();
+
+        // ── Lógica de Login/Cadastro Mista ──
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errAuth.style.display = 'none';
+            const btn = document.getElementById('btn-submit');
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+
+            btn.disabled = true;
+            btn.textContent = "Autenticando...";
+
+            // Tenta Logar primeiro
+            const { data: logData, error: logErr } = await db.auth.signInWithPassword({ email, password: pass });
+
+            if (logErr) {
+                if (logErr.message.toLowerCase().includes('invalid login credentials')) {
+                    // Tenta criar a conta
+                    btn.textContent = "Criando conta...";
+                    const { data: signUpData, error: signUpErr } = await db.auth.signUp({ email, password: pass });
+
+                    if (signUpErr) {
+                        showError(errAuth, "Erro ao criar conta: " + signUpErr.message);
+                        btn.disabled = false;
+                        btn.textContent = "Entrar / Cadastrar";
+                        return;
+                    } else if (signUpData.user && !signUpData.session) {
+                        showError(errAuth, "Conta criada! Verifique seu e-mail para confirmar antes de logar.");
+                        btn.disabled = false;
+                        btn.textContent = "Entrar / Cadastrar";
+                        return;
+                    } else {
+                        // Conta criada e logada
+                        await checkUserRouting();
+                    }
+                } else {
+                    showError(errAuth, "Erro de login: " + logErr.message);
+                    btn.disabled = false;
+                    btn.textContent = "Entrar / Cadastrar";
+                }
+            } else {
+                // Logado com sucesso
+                await checkUserRouting();
+            }
+        });
+
+        // ── Lógica de Criação da Empresa & Checkout ──
+        document.getElementById('onboard-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errOnb.style.display = 'none';
+            const btn = document.getElementById('btn-onboard');
+            const n = document.getElementById('empresa-nome').value.trim();
+
+            if (!n) return;
+
+            btn.disabled = true;
+            btn.textContent = "Criando...";
+
+            const { data: { session } } = await db.auth.getSession();
+            if (!session) {
+                window.location.reload(); return;
+            }
+
+            // 1. Cria a Empresa na tabela `empresas`
+            // Como o admin RLS talvez bloqueie INSERTs direto se não tiver bypass completo (dependendo de como você fez o RLS)
+            // O ideal é ter RLS permtindo INSERT se auth.uid() == JWT. Ou bypassamos tudo para a Edge Function via admin key.
+            // Supomos que a policy permita INSERT ou o usuário use uma Edge Function. 
+            // **Importante:** Se a RLS impedir usuário normal de criar a própria empresa no frontend, é necessário uma policy como:
+            // CREATE POLICY "Membros podem inserir empresas novas" ON empresas FOR INSERT WITH CHECK (true);
+
+            const { data: emp, error: empErr } = await db.from('empresas').insert([{ nome: n }]).select().single();
+
+            if (empErr) {
+                showError(errOnb, "Erro ao criar empresa: " + empErr.message + " (Verifique as permissões RLS da tabela empresas)");
+                btn.disabled = false;
+                btn.textContent = "Criar Empresa & Assinar";
+                return;
+            }
+
+            const empId = emp.id;
+
+            // 2. Vincula o criador como owner
+            await db.from('empresa_membros').insert([{
+                empresa_id: empId,
+                user_id: session.user.id,
+                role: 'owner'
+            }]);
+
+            btn.textContent = "Redirecionando para Assinatura...";
+
+            // 3. Bypass Edge Function locally
+            window.location.href = 'app.html';
+        });
+
+    </script>
+</body>
+
+</html>

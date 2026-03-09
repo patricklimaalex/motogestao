@@ -1,0 +1,42 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Obter o código da branch
+        uses: actions/checkout@v4
+
+      - name: 📦 Instalar dependências (Opcional)
+        # Remova os comentários abaixo se você precisar instalar dependências ou buildar antes de enviar
+        run: |
+          echo "Pular etapa de build..."
+          # npm install
+          # npm run build
+
+      - name: 📂 Upload de arquivos via FTP para a Hostinger
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: public_html/ # Ajuste se sua aplicação roda em outro diretório na Hostinger
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/.env*
+            **/.DS_Store
+            *.pdf
+            *.docx
+            *.pfx
+            *.zip
+            setup_banco.sql
+            update_supabase.sql

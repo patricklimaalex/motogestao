@@ -1,0 +1,15 @@
+node_modules/
+.env
+.env.*
+.DS_Store
+*.log
+*.pdf
+*.docx
+*.pfx
+*.pem
+*.key
+*.zip
+server.log
+CleanShot*.png
+/Consulta Detran/
+/files/
