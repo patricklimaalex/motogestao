@@ -4,8 +4,8 @@
 # Script de Instalação Automatizada - MotoGestão (VPS Ubuntu/Debian)
 # ==============================================================================
 # Executar este script na sua VPS via SSH:
-# chmod +x install_vps.sh
-# sudo ./install_vps.sh
+# chmod +x scripts/install-vps.sh
+# sudo ./scripts/install-vps.sh
 # ==============================================================================
 
 # Cores para logs
@@ -67,17 +67,17 @@ if [ ! -f "package.json" ]; then
 fi
 
 # Instalar os módulos básicos necessários no servidor
-npm install express cors axios puppeteer puppeteer-core puppeteer-extra puppeteer-extra-plugin-stealth
+npm install
 
 # 6. Configurar o PM2 (Gerenciador de Processos Node.js)
 echo -e "${BLUE}[6/8] Instalando o PM2 e iniciando o Servidor...${NC}"
 sudo npm install -g pm2
 
 # Parar se já estiver rodando
-pm2 stop multas_server 2>/dev/null || true
+pm2 stop motogestao 2>/dev/null || true
 
-# Iniciar o servidor Multas (que roda na porta 2222)
-pm2 start multas_server.js --name "multas_server"
+# Iniciar o servidor (que roda na porta 2222)
+pm2 start src/server.js --name "motogestao"
 
 # Fazer o PM2 iniciar automaticamente com o boot da VPS
 pm2 save
@@ -122,5 +122,5 @@ echo -e "O servidor já está rodando em background com o PM2."
 echo -e "O Nginx está direcionando o tráfego da porta 80 para a aplicação."
 echo -e "\n${BLUE}Verifique se está tudo funcionando:${NC}"
 echo -e "1. O IP da sua VPS, Exemplo: http://IP_DA_VPS"
-echo -e "2. O PM2 (Logs do Scraper): pam2 logs multas_server"
+echo -e "2. O PM2 (Logs do Scraper): pm2 logs motogestao"
 echo -e "======================================================\n"

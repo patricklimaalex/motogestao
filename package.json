@@ -1,18 +1,27 @@
 {
-  "name": "v1.0",
+  "name": "motogestao",
   "version": "1.0.0",
-  "description": "",
-  "main": "detran_ce_puppeteer.js",
+  "description": "Sistema de gestao de motos com consulta automatizada de multas via DETRAN-CE",
+  "main": "src/server.js",
   "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/patricklimaalex/motogestao.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "multas",
+    "detran",
+    "gestao",
+    "motos",
+    "scraper",
+    "puppeteer"
+  ],
+  "author": "Patrick Alex",
+  "license": "MIT",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/patricklimaalex/motogestao/issues"

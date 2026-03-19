@@ -1,7 +1,7 @@
-const ms = require('./multas_server.js');
-// We need to extract the function inside since it might not be exported, wait, let's do this:
+const path = require('path');
+const ms = require(path.join(__dirname, '..', 'src', 'server.js'));
 const fs = require('fs');
-let code = fs.readFileSync('multas_server.js', 'utf8');
+let code = fs.readFileSync(path.join(__dirname, '..', 'src', 'server.js'), 'utf8');
 
 // just evaluate the puppeteer function:
 const match = code.match(/async function consultarDetranCE_Puppeteer.*?finally\s*\{\s*await browser\.close\(\);\s*\}/s);

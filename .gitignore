@@ -1,15 +1,40 @@
+# Dependencias
 node_modules/
+
+# Variaveis de ambiente
 .env
 .env.*
+
+# Sistema
 .DS_Store
+Thumbs.db
+
+# Logs
 *.log
-*.pdf
-*.docx
+
+# Arquivos sensiveis
 *.pfx
 *.pem
 *.key
+*.p12
+
+# Documentos pessoais
+*.pdf
+*.docx
+*.xlsx
+
+# Arquivos temporarios
 *.zip
-server.log
+*.tar.gz
+
+# Screenshots
 CleanShot*.png
+*.screenshot.*
+
+# Diretorios locais
 /Consulta Detran/
 /files/
+
+# IDE
+.vscode/
+.idea/

@@ -1,0 +1,20 @@
+node_modules/
+.git/
+.github/
+.env
+.env.*
+.DS_Store
+*.log
+*.pdf
+*.docx
+*.pfx
+*.pem
+*.key
+*.zip
+*.png
+tests/
+database/
+scripts/
+Consulta Detran/
+files/
+README.md

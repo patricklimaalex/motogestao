@@ -38,5 +38,6 @@ jobs:
             *.docx
             *.pfx
             *.zip
-            setup_banco.sql
-            update_supabase.sql
+            database/**
+            scripts/**
+            tests/**

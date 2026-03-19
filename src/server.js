@@ -633,10 +633,15 @@ http.createServer(async (req, res) => {
   const meth = req.method;
   console.log(`[${new Date().toLocaleTimeString('pt-BR')}] ${meth} ${path}`);
 
-  if ((path === '/' || path === '/app.html') && meth === 'GET') {
-    const f = pathMod.join(__dirname, 'app.html');
-    if (fs.existsSync(f)) { cors(res); res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }); return res.end(fs.readFileSync(f)); }
-    return reply(res, 404, { erro: 'app.html não encontrado' });
+  // ── Servir arquivos estáticos da pasta public/ ──
+  if (meth === 'GET') {
+    const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon' };
+    const staticFile = path === '/' ? '/app.html' : path;
+    const ext = pathMod.extname(staticFile);
+    if (MIME[ext]) {
+      const f = pathMod.join(__dirname, '..', 'public', staticFile);
+      if (fs.existsSync(f)) { cors(res); res.writeHead(200, { 'Content-Type': MIME[ext] + '; charset=utf-8' }); return res.end(fs.readFileSync(f)); }
+    }
   }
 
   if (path === '/status' && meth === 'GET')

@@ -31,4 +31,4 @@ COPY . .
 EXPOSE 2222
 
 # Comando para iniciar a aplicação
-CMD [ "node", "multas_server.js" ]
+CMD [ "node", "src/server.js" ]

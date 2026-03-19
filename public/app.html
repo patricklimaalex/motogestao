@@ -1510,6 +1510,11 @@
     }
   }
 
+  @keyframes pulse-border {
+    0%, 100% { border-color: var(--sys-error); box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+    50% { border-color: #fca5a5; box-shadow: 0 0 16px 2px rgba(239,68,68,0.25); }
+  }
+
   /* Multas specific */
   .multa-card {
     background: var(--bg-card);
@@ -2067,7 +2072,7 @@
   <!-- ── Modals ─────────────────────────────────────────────────── -->
   <div class="overlay" id="modal-detail" style="display:none" onclick="closeModal('modal-detail')">
     <div class="modal" onclick="event.stopPropagation()"
-      style="max-width:680px;width:100%;max-height:90vh;overflow-y:auto;padding:0">
+      style="max-width:960px;width:100%;max-height:90vh;overflow-y:auto;padding:0">
       <div id="modal-detail-body" style="padding:24px"></div>
     </div>
   </div>
@@ -2689,6 +2694,7 @@
       fStatus: "todos", fModelo: "todos", fBusca: "",
       online: false,
       periodoDbMap: {},  // periodoId => db UUID
+      periodosTotais: {},  // periodoId => { repassar, preparacao, distrato, liquido, count }
       empresaId: null,
     };
 
@@ -3508,7 +3514,8 @@
 
     async function showDetail(idx, src) {
       let m = null;
-      if (src === 'inv') {
+      if (src === 'inv' || (typeof idx === 'string' && !src)) {
+        // Chamado com placa (string) — busca por placa
         const placa = idx;
         m = STATE.locacoes.find(l => l.placa === placa) ||
           (STATE.motosCadastro[placa] ? { placa, modelo: STATE.motosCadastro[placa].modelo, fabricacao: STATE.motosCadastro[placa].fabricacao, status: 'sem_locacao', semanas: 0, valor_repassar: 0, valor_preparacao: 0, valor_distrato: 0, valor_liquido: 0 } : null);
@@ -4150,11 +4157,21 @@
         motosList.sort((a, b) => b.roi - a.roi); // Rank by ROI Descending
 
         const fatMensal = STATE.periodos.map(p => {
-          const locs = p.id === "2025-12" ? FB_DEZ : STATE.locacoes.filter(l => l.periodo === p.id);
-          const totalRec = locs.reduce((sum, l) => sum + (l.valor_repassar || 0), 0);
-          return `<div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid var(--border);">
-            <strong style="color:var(--text-main)">${p.label}</strong>
-            <span class="mono" style="color:var(--sys-success)">${fmt(totalRec)}</span>
+          const totais = (STATE.periodosTotais || {})[p.id] || {};
+          const totalLiq = totais.liquido || 0;
+          const totalRep = totais.repassar || 0;
+          const totalPrep = totais.preparacao || 0;
+          const count = totais.count || 0;
+          const hasData = count > 0;
+          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 8px;border-bottom:1px solid var(--border);${p.id === STATE.periodoId ? 'background:rgba(59,130,246,0.08);border-radius:6px' : ''}">
+            <div>
+              <strong style="color:var(--text-main)">${p.label}</strong>
+              <div style="font-size:10px;color:var(--text-dim)">${count} motos · rep ${fmt(totalRep)}</div>
+            </div>
+            <div style="text-align:right">
+              <span class="mono" style="font-weight:700;color:${totalLiq >= 0 ? 'var(--sys-success)' : 'var(--sys-error)'}">${hasData ? fmt(totalLiq) : '<span style="color:var(--text-dim)">—</span>'}</span>
+              ${totalPrep ? `<div style="font-size:10px;color:#f87171;font-family:'Space Mono',monospace">prep ${fmt(totalPrep)}</div>` : ''}
+            </div>
           </div>`;
         }).join("");
 
@@ -4498,6 +4515,20 @@ Regras:
         const motos = [];
         let detPer = { ano: null, mes: null };
 
+        // ── Detecção de período pelo nome do arquivo (fallback robusto) ──
+        const _MES_ABR = { 'JAN': 1, 'FEV': 2, 'MAR': 3, 'ABR': 4, 'MAI': 5, 'JUN': 6, 'JUL': 7, 'AGO': 8, 'SET': 9, 'OUT': 10, 'NOV': 11, 'DEZ': 12 };
+        const _fnUpper = (file.name || '').toUpperCase().replace(/[^A-Z0-9]/g, ' ');
+        let _fnPer = { ano: null, mes: null };
+        for (const [abr, m] of Object.entries(_MES_ABR)) {
+          if (_fnUpper.includes(abr)) {
+            _fnPer.mes = m;
+            const ym = _fnUpper.match(/(\d{4})/);
+            if (ym) _fnPer.ano = parseInt(ym[1]);
+            break;
+          }
+        }
+        if (_fnPer.mes) console.log(`  [PDF] Período detectado pelo nome do arquivo: ${MES[_fnPer.mes]} ${_fnPer.ano}`);
+
         for (let pg = 1; pg <= total; pg++) {
           const pct = 16 + (pg / total) * 74;
           setP(pct, `🤖 IA lendo página ${pg}/${total}...`);
@@ -4551,6 +4582,13 @@ Regras:
         }
 
         setP(92, "Detectando período...");
+
+        // Fallback: se IA não detectou período, usa nome do arquivo
+        if (!detPer.mes && _fnPer.mes) {
+          detPer.mes = _fnPer.mes;
+          detPer.ano = _fnPer.ano || new Date().getFullYear();
+          console.log(`  [PDF] Usando período do nome do arquivo: ${MES[detPer.mes]} ${detPer.ano}`);
+        }
 
         if (detPer.mes && detPer.ano) {
           pdfPeriodoSel = `${detPer.ano}-${String(detPer.mes).padStart(2, "0")}`;
@@ -4763,6 +4801,36 @@ Regras:
         if (lbl) lbl.textContent = `${pct}% — ${importados} importadas${ignorados ? `, ${ignorados} ignoradas` : ''}`;
       }
 
+      // ── Auto-gerar custos de preparação ──────────────────────────
+      const custosPrep = rows.filter(r => (r.valor_preparacao || 0) !== 0);
+      let custosImportados = 0;
+      if (custosPrep.length > 0) {
+        const lbl = document.getElementById("imp-bar-txt");
+        if (lbl) lbl.textContent = `Salvando ${custosPrep.length} custos de preparação...`;
+
+        // Remove custos de preparação antigos deste período para evitar duplicatas
+        await db.from("custos").delete()
+          .eq("periodo_id", dbPerId)
+          .eq("categoria", "preparacao");
+
+        const custosRows = custosPrep.map(r => ({
+          empresa_id: STATE.empresaId,
+          periodo_id: dbPerId,
+          placa: r.placa,
+          categoria: "preparacao",
+          descricao: r.observacao ? `Preparação: ${r.observacao}` : "Preparação de frota",
+          valor: Math.abs(r.valor_preparacao),
+          data_custo: `${ano}-${String(mes).padStart(2, '0')}-01`,
+          fornecedor: null
+        }));
+
+        for (let i = 0; i < custosRows.length; i += 20) {
+          const batch = custosRows.slice(i, i + 20);
+          const { error: cErr } = await db.from("custos").insert(batch);
+          if (!cErr) custosImportados += batch.length;
+        }
+      }
+
       // Reload
       if (!STATE.periodos.find(p => p.id === pdfPeriodoSel)) {
         STATE.periodos.push({ id: pdfPeriodoSel, db_id: dbPerId, ano, mes, label: `${MES[mes]} ${ano}`, empresa: "BAMA", arrendante: "ALEXCO" });
@@ -4777,6 +4845,7 @@ Regras:
       <div style="font-size:48px;margin-bottom:12px">🎉</div>
       <div style="color:#4ade80;font-weight:800;font-size:20px">Importação concluída!</div>
       <div style="class="tx-dim";margin-top:8px">${rows.length} motos salvas para ${MES[mes]} ${ano}.</div>
+      ${custosImportados > 0 ? `<div style="color:var(--sys-warning);margin-top:8px;font-size:13px">📋 ${custosImportados} custos de preparação salvos automaticamente.</div>` : ''}
       <button class="btn-primary" style="margin-top:20px" onclick="closeModal('modal-pdf')">Fechar</button>
     </div>`;
     }
@@ -4789,6 +4858,8 @@ Regras:
       serverOnline: false,
       playwright: false,
       resultados: [],    // [{placa, renavam, possui_multas, quantidade_multas, detalhes_multas, erro, consultado_em}]
+      resultadosAnteriores: [],  // snapshot da consulta anterior para detectar novas multas
+      novasMultas: [],           // multas detectadas como novas na última consulta
       motosCadastro: {},  // {placa: {renavam, modelo, fabricacao}}
       consultando: false,
       progresso: 0,
@@ -4843,8 +4914,11 @@ Regras:
         if (!ok) return;
       }
 
-      const placas = [...new Set(STATE.locacoes.filter(m => m.status !== "sem_locacao").map(m => m.placa))].filter(Boolean).sort();
-      if (!placas.length) { alert("Nenhuma moto ativa neste período."); return; }
+      // Usa TODAS as motos do inventário (motosCadastro) + locações do período
+      const invPlacas = Object.keys(STATE.motosCadastro || {});
+      const locPlacas = STATE.locacoes.map(m => m.placa);
+      const placas = [...new Set([...invPlacas, ...locPlacas])].filter(Boolean).sort();
+      if (!placas.length) { alert("Nenhuma moto no inventário."); return; }
 
       // Monta listas placa e renavam (CSV para SSE)
       const renavams = placas.map(p => {
@@ -4855,7 +4929,12 @@ Regras:
       MULTAS.consultando = true;
       MULTAS.progresso = 0;
       MULTAS.total = placas.length;
+      // Salva snapshot anterior para detectar novas multas
+      if (MULTAS.resultados.length > 0) {
+        MULTAS.resultadosAnteriores = JSON.parse(JSON.stringify(MULTAS.resultados));
+      }
       MULTAS.resultados = [];
+      MULTAS.novasMultas = [];
       MULTAS.fonte = 'detran_ce';
       render();
 
@@ -4928,6 +5007,7 @@ Regras:
           debugLog(`  Duração: ${seg}s (~${(d.duracao_ms / d.total / 1000).toFixed(0)}s/moto)`, 'info');
 
           MULTAS.consultando = false;
+          detectarNovasMultas();
           es.close();
           render();
           resolve();
@@ -4960,6 +5040,7 @@ Regras:
         debugLog(`  ${result.erro ? '❌' : result.possui_multas ? '🚨' : '✅'} ${placa} — ${result.erro || (result.quantidade_multas || 0) + ' multa(s)'}`, result.erro ? 'error' : result.possui_multas ? 'warn' : 'success');
       }
       MULTAS.consultando = false;
+      detectarNovasMultas();
       render();
     }
 
@@ -5067,6 +5148,36 @@ Regras:
       MULTAS.dbSalvando = false;
       if (btn) { btn.disabled = false; btn.textContent = "💾 Salvar no Banco"; }
       alert(`✓ ${ok} resultado(s) salvos no banco.${err ? `\n⚠ ${err} erro(s).` : ""}`);
+    }
+
+    // ── Detectar Novas Multas (diff entre consultas) ──────────────────
+    function detectarNovasMultas() {
+      const anteriores = MULTAS.resultadosAnteriores || [];
+      if (!anteriores.length) return;
+
+      // Coleta todos os AITs anteriores
+      const aitsAnteriores = new Set();
+      anteriores.forEach(r => {
+        (r.detalhes_multas || []).forEach(m => {
+          if (m.ait) aitsAnteriores.add(m.ait);
+        });
+      });
+
+      // Encontra multas novas (AIT não existia antes)
+      const novas = [];
+      MULTAS.resultados.forEach(r => {
+        (r.detalhes_multas || []).forEach(m => {
+          if (m.ait && !aitsAnteriores.has(m.ait)) {
+            novas.push({ placa: r.placa, ...m });
+          }
+        });
+      });
+
+      MULTAS.novasMultas = novas;
+      if (novas.length > 0) {
+        debugLog(`🆕 ${novas.length} NOVA(S) MULTA(S) detectada(s)!`, 'warn');
+        novas.forEach(n => debugLog(`  🆕 ${n.placa} — ${n.motivo || 'sem descrição'} — ${n.valor_a_pagar || n.valor_original || ''}`, 'warn'));
+      }
     }
 
     // ── Carrega histórico do banco ────────────────────────────────────
@@ -5185,7 +5296,10 @@ Regras:
 
     // ── RENDER principal da aba ───────────────────────────────────────
     function renderMultas() {
-      const placasFrota = [...new Set(STATE.locacoes.map(m => m.placa))].filter(Boolean);
+      const placasFrota = [...new Set([
+        ...STATE.locacoes.map(m => m.placa),
+        ...Object.keys(STATE.motosCadastro || {})
+      ])].filter(Boolean);
       // Fines Filters
       const fTipo = (MULTAS.fTipo || '').toLowerCase();
       const fValor = parseFloat(MULTAS.fValor || '0');
@@ -5281,6 +5395,52 @@ Regras:
       <div class="enterprise-card" style="padding:18px"><div class="text-label" style="text-transform:uppercase;font-size:10px;margin-bottom:8px">Valor Total</div><div class="kpi-val" style="color:var(--text-main)">${fmt(totalValor)}</div></div>
       ${erros.length ? `<div class="enterprise-card" style="padding:18px;background:var(--sys-error-bg)"><div class="text-label" style="text-transform:uppercase;font-size:10px;margin-bottom:8px;color:var(--sys-error)">Erros/Inconcl.</div><div class="kpi-val" style="color:var(--sys-error)">${erros.length}</div></div>` : ""}
       ${naoConsult > 0 ? `<div class="enterprise-card" style="padding:18px"><div class="text-label" style="text-transform:uppercase;font-size:10px;margin-bottom:8px">Não Consultadas</div><div class="kpi-val" style="color:var(--text-muted)">${naoConsult}</div></div>` : ""}
+    </div>`;
+      }
+
+      // ── Destaque: Novas Multas ──────────────────────────────────
+      const novasM = MULTAS.novasMultas || [];
+      if (novasM.length > 0) {
+        const totalNovasValor = novasM.reduce((s, m) => {
+          const v = parseFloat((m.valor_a_pagar || m.valor_original || '0').replace('R$', '').replace('.', '').replace(',', '.')) || 0;
+          return s + v;
+        }, 0);
+        html += `
+    <div class="enterprise-card" style="padding:0;margin-bottom:20px;border:2px solid var(--sys-error);overflow:hidden;animation:pulse-border 2s ease-in-out 3">
+      <div style="padding:16px 20px;background:var(--sys-error-bg);display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="this.parentElement.querySelector('.novas-multas-body').style.display=this.parentElement.querySelector('.novas-multas-body').style.display==='none'?'block':'none'">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:22px">🆕</span>
+          <div>
+            <div style="font-size:15px;font-weight:800;color:var(--sys-error)">
+              ${novasM.length} NOVA${novasM.length > 1 ? 'S' : ''} MULTA${novasM.length > 1 ? 'S' : ''} DETECTADA${novasM.length > 1 ? 'S' : ''}
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Multas que não existiam na consulta anterior · Valor total: <strong style="color:var(--sys-error)">${fmt(totalNovasValor)}</strong></div>
+          </div>
+        </div>
+        <span style="font-size:11px;color:var(--accent);font-weight:600">clique para expandir ▼</span>
+      </div>
+      <div class="novas-multas-body" style="display:block;max-height:300px;overflow-y:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:var(--bg-card2)">
+            <th style="text-align:left;padding:8px 12px;font-size:10px;text-transform:uppercase;color:var(--text-dim)">Placa</th>
+            <th style="text-align:left;padding:8px 6px;font-size:10px;text-transform:uppercase;color:var(--text-dim)">Infração</th>
+            <th style="text-align:left;padding:8px 6px;font-size:10px;text-transform:uppercase;color:var(--text-dim)">Data</th>
+            <th style="text-align:left;padding:8px 6px;font-size:10px;text-transform:uppercase;color:var(--text-dim)">Vencimento</th>
+            <th style="text-align:right;padding:8px 12px;font-size:10px;text-transform:uppercase;color:var(--text-dim)">Valor</th>
+          </tr></thead>
+          <tbody>
+            ${novasM.map((m, i) => `
+              <tr style="background:${i % 2 === 0 ? 'var(--bg-card)' : 'var(--bg-card2)'}">
+                <td style="padding:6px 12px;font-family:'Space Mono',monospace;color:#f59e0b;font-weight:600">${m.placa}</td>
+                <td style="padding:6px;color:var(--text-main);max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${(m.motivo || '').replace(/"/g, '&quot;')}">${m.motivo || '—'}</td>
+                <td style="padding:6px;color:var(--text-muted)">${m.data_infracao || '—'}</td>
+                <td style="padding:6px;color:var(--text-muted)">${m.vencimento || m.data_vencimento || '—'}</td>
+                <td style="padding:6px 12px;text-align:right;font-family:'Space Mono',monospace;font-weight:700;color:var(--sys-error)">${m.valor_a_pagar || m.valor_original || '—'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
     </div>`;
       }
 
@@ -5437,6 +5597,425 @@ Regras:
     }
 
     // ── Dashboard Geral (BI) ─────────────────────────
+    function showPreparacaoDetail() {
+      const L = (STATE.locacoes || []).filter(m => (m.valor_preparacao || 0) !== 0)
+        .sort((a, b) => (a.valor_preparacao || 0) - (b.valor_preparacao || 0));
+      const totalPrep = L.reduce((s, m) => s + (m.valor_preparacao || 0), 0);
+      const per = STATE.periodos.find(p => p.id === STATE.periodoId);
+      const perLabel = per ? per.label : STATE.periodoId;
+
+      // Agrupar itens de preparação por tipo
+      const tipoMap = {};
+      L.forEach(m => {
+        const items = (m.observacao || m.especificacoes_preparacao || '').split(/[,·]/).map(s => s.trim().toUpperCase()).filter(Boolean);
+        items.forEach(item => {
+          if (!tipoMap[item]) tipoMap[item] = { count: 0, motos: [] };
+          tipoMap[item].count++;
+          tipoMap[item].motos.push(m.placa);
+        });
+      });
+      const tipos = Object.entries(tipoMap).sort((a, b) => b[1].count - a[1].count);
+
+      // Cards de resumo por tipo
+      const tipoCards = tipos.map(([tipo, info]) =>
+        `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px">
+          <div style="font-size:12px;font-weight:600;color:var(--text-main)">${tipo}</div>
+          <div style="font-size:12px;color:var(--accent);font-family:'Space Mono',monospace">${info.count}x</div>
+        </div>`
+      ).join('');
+
+      // Tabela detalhada por moto
+      const rows = L.map((m, i) => {
+        const items = (m.observacao || m.especificacoes_preparacao || '').split(/[,·]/).map(s => s.trim()).filter(Boolean);
+        const badges = items.map(it =>
+          `<span style="display:inline-block;background:var(--bg-base);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-size:10px;color:var(--text-muted);margin:1px 2px">${it}</span>`
+        ).join('');
+        const bgRow = i % 2 === 0 ? 'var(--bg-card)' : 'var(--bg-card2)';
+        return `<tr style="background:${bgRow}">
+          <td style="font-family:'Space Mono',monospace;color:#f59e0b;font-weight:600;font-size:12px;white-space:nowrap">${m.placa}</td>
+          <td style="font-size:11px;color:var(--text-muted)">${m.modelo || ''}</td>
+          <td style="text-align:right;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:#f87171;white-space:nowrap">${fmt(m.valor_preparacao || 0)}</td>
+          <td style="font-size:10px;line-height:1.6">${badges || '<span style="color:var(--text-dim)">—</span>'}</td>
+          <td><span class="badge ${BADGE[m.status] || ''}" style="font-size:10px">${BADGE_LBL[m.status] || m.status}</span></td>
+        </tr>`;
+      }).join('');
+
+      document.getElementById('modal-detail-body').innerHTML = `
+        <div style="padding:0">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px 12px;border-bottom:1px solid var(--border)">
+            <div>
+              <div style="font-size:18px;font-weight:800;font-family:var(--font-brand)">Detalhamento de Preparação</div>
+              <div style="font-size:12px;color:var(--text-dim);margin-top:2px">${perLabel} · ${L.length} motos com preparação</div>
+            </div>
+            <button class="modal-close" onclick="closeModal('modal-detail')" style="position:static">✕</button>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:16px;padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg-card2)">
+            <div style="flex:1">
+              <div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Total Preparação</div>
+              <div style="font-size:24px;font-weight:700;color:#f87171;font-family:'Space Mono',monospace">${fmt(totalPrep)}</div>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Média por Moto</div>
+              <div style="font-size:16px;font-weight:700;color:#f87171;font-family:'Space Mono',monospace">${fmt(L.length ? totalPrep / L.length : 0)}</div>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Motos sem Kit (-R$100)</div>
+              <div style="font-size:16px;font-weight:700;color:var(--sys-warning);font-family:'Space Mono',monospace">${L.filter(m => (m.valor_preparacao || 0) < -100).length}</div>
+            </div>
+          </div>
+
+          ${tipos.length ? `
+          <div style="padding:14px 24px;border-bottom:1px solid var(--border)">
+            <div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;font-weight:700">Serviços Realizados</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">${tipoCards}</div>
+          </div>` : ''}
+
+          <div style="max-height:50vh;overflow-y:auto;padding:0 12px 16px">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px">
+              <thead><tr style="position:sticky;top:0;background:var(--bg-card);z-index:1">
+                <th style="text-align:left;padding:8px 6px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Placa</th>
+                <th style="text-align:left;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Modelo</th>
+                <th style="text-align:right;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Valor</th>
+                <th style="text-align:left;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Especificações</th>
+                <th style="text-align:center;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Status</th>
+              </tr></thead>
+              <tbody>${rows}</tbody>
+              <tfoot><tr style="border-top:2px solid var(--border);font-weight:700">
+                <td style="padding:10px 6px" colspan="2">TOTAL (${L.length} motos)</td>
+                <td style="text-align:right;padding:10px 4px;color:#f87171;font-family:'Space Mono',monospace">${fmt(totalPrep)}</td>
+                <td colspan="2"></td>
+              </tr></tfoot>
+            </table>
+          </div>
+        </div>`;
+      openModal('modal-detail');
+    }
+
+    function showRepasseDetail() {
+      const L = (STATE.locacoes || []).slice().sort((a, b) => (b.valor_repassar || 0) - (a.valor_repassar || 0));
+      const totalRep = L.reduce((s, m) => s + (m.valor_repassar || 0), 0);
+      const totalPrep = L.reduce((s, m) => s + (m.valor_preparacao || 0), 0);
+      const totalDist = L.reduce((s, m) => s + (m.valor_distrato || 0), 0);
+      const totalLiq = L.reduce((s, m) => s + (m.valor_liquido || 0), 0);
+      const per = STATE.periodos.find(p => p.id === STATE.periodoId);
+      const perLabel = per ? per.label : STATE.periodoId;
+
+      const rows = L.map((m, i) => {
+        const repColor = (m.valor_repassar || 0) > 0 ? '#4ade80' : (m.valor_repassar || 0) < 0 ? '#f87171' : 'var(--text-dim)';
+        const prepColor = (m.valor_preparacao || 0) < 0 ? '#f87171' : (m.valor_preparacao || 0) > 0 ? '#4ade80' : 'var(--text-dim)';
+        const distColor = (m.valor_distrato || 0) < 0 ? '#f87171' : (m.valor_distrato || 0) > 0 ? '#4ade80' : 'var(--text-dim)';
+        const liqColor = (m.valor_liquido || 0) >= 0 ? '#4ade80' : '#f87171';
+        const bgRow = i % 2 === 0 ? 'var(--bg-card)' : 'var(--bg-card2)';
+        return `<tr style="background:${bgRow}">
+          <td style="font-family:'Space Mono',monospace;color:#f59e0b;font-weight:600;font-size:12px">${m.placa}</td>
+          <td style="font-size:11px;color:var(--text-muted)">${m.modelo || ''}</td>
+          <td style="text-align:center;font-size:11px">${m.semanas || 0}</td>
+          <td style="text-align:right;font-family:'Space Mono',monospace;font-size:12px;color:${repColor}">${fmt(m.valor_repassar || 0)}</td>
+          <td style="text-align:right;font-family:'Space Mono',monospace;font-size:12px;color:${prepColor}">${fmt(m.valor_preparacao || 0)}</td>
+          <td style="text-align:right;font-family:'Space Mono',monospace;font-size:12px;color:${distColor}">${fmt(m.valor_distrato || 0)}</td>
+          <td style="text-align:right;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:${liqColor}">${fmt(m.valor_liquido || 0)}</td>
+          <td><span class="badge ${BADGE[m.status] || ''}" style="font-size:10px">${BADGE_LBL[m.status] || m.status}</span></td>
+        </tr>`;
+      }).join('');
+
+      document.getElementById('modal-detail-body').innerHTML = `
+        <div style="padding:0">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px 12px;border-bottom:1px solid var(--border)">
+            <div>
+              <div style="font-size:18px;font-weight:800;font-family:var(--font-brand)">Detalhamento de Repasse</div>
+              <div style="font-size:12px;color:var(--text-dim);margin-top:2px">${perLabel} · ${L.length} motos</div>
+            </div>
+            <button class="modal-close" onclick="closeModal('modal-detail')" style="position:static">✕</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg-card2)">
+            <div><div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Repasse Bruto</div><div style="font-size:16px;font-weight:700;color:#4ade80;font-family:'Space Mono',monospace">${fmt(totalRep)}</div></div>
+            <div style="cursor:pointer;border-radius:8px;padding:4px;margin:-4px;transition:background .2s" onclick="event.stopPropagation();closeModal('modal-detail');setTimeout(showPreparacaoDetail,150)" onmouseenter="this.style.background='rgba(248,113,113,0.1)'" onmouseleave="this.style.background=''"><div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Preparação <span style="color:var(--accent);font-size:9px">ver detalhes →</span></div><div style="font-size:16px;font-weight:700;color:#f87171;font-family:'Space Mono',monospace">${fmt(totalPrep)}</div></div>
+            <div><div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Distrato</div><div style="font-size:16px;font-weight:700;color:${totalDist >= 0 ? '#4ade80' : '#f87171'};font-family:'Space Mono',monospace">${fmt(totalDist)}</div></div>
+            <div><div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Líquido Final</div><div style="font-size:16px;font-weight:700;color:${totalLiq >= 0 ? '#4ade80' : '#f87171'};font-family:'Space Mono',monospace">${fmt(totalLiq)}</div></div>
+          </div>
+          <div style="max-height:55vh;overflow-y:auto;padding:0 12px 16px">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px">
+              <thead><tr style="position:sticky;top:0;background:var(--bg-card);z-index:1">
+                <th style="text-align:left;padding:8px 6px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Placa</th>
+                <th style="text-align:left;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Modelo</th>
+                <th style="text-align:center;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Sem</th>
+                <th style="text-align:right;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Repasse</th>
+                <th style="text-align:right;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Preparação</th>
+                <th style="text-align:right;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Distrato</th>
+                <th style="text-align:right;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Líquido</th>
+                <th style="text-align:center;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Status</th>
+              </tr></thead>
+              <tbody>${rows}</tbody>
+              <tfoot><tr style="border-top:2px solid var(--border);font-weight:700">
+                <td style="padding:10px 6px" colspan="3">TOTAL</td>
+                <td style="text-align:right;padding:10px 4px;color:#4ade80;font-family:'Space Mono',monospace">${fmt(totalRep)}</td>
+                <td style="text-align:right;padding:10px 4px;color:#f87171;font-family:'Space Mono',monospace">${fmt(totalPrep)}</td>
+                <td style="text-align:right;padding:10px 4px;color:${totalDist >= 0 ? '#4ade80' : '#f87171'};font-family:'Space Mono',monospace">${fmt(totalDist)}</td>
+                <td style="text-align:right;padding:10px 4px;color:${totalLiq >= 0 ? '#4ade80' : '#f87171'};font-family:'Space Mono',monospace">${fmt(totalLiq)}</td>
+                <td></td>
+              </tr></tfoot>
+            </table>
+          </div>
+        </div>`;
+      openModal('modal-detail');
+    }
+
+    // ── KPI Detail Modals ──
+    function showVeiculosDetail() {
+      const L = STATE.locacoes || [];
+      const per = STATE.periodos.find(p => p.id === STATE.periodoId);
+      const perLabel = per ? per.label : STATE.periodoId;
+      const statusGroups = {};
+      L.forEach(m => {
+        const s = m.status || 'sem_locacao';
+        if (!statusGroups[s]) statusGroups[s] = [];
+        statusGroups[s].push(m);
+      });
+      const statusOrder = ['ativo', 'nova_locacao', 'distrato', 'sem_locacao'];
+      const rows = statusOrder.filter(s => statusGroups[s]).map(s => {
+        const motos = statusGroups[s];
+        return motos.map((m, i) => {
+          const bgRow = i % 2 === 0 ? 'var(--bg-card)' : 'var(--bg-card2)';
+          return `<tr style="background:${bgRow}">
+            <td style="font-family:'Space Mono',monospace;color:#f59e0b;font-weight:600;font-size:12px;cursor:pointer" onclick="closeModal('modal-detail');setTimeout(()=>showDetail('${m.placa}'),150)">${m.placa}</td>
+            <td style="font-size:11px;color:var(--text-muted)">${m.modelo || ''}</td>
+            <td><span class="badge ${BADGE[m.status] || ''}" style="font-size:10px">${BADGE_LBL[m.status] || m.status}</span></td>
+            <td class="mono" style="text-align:right;color:var(--sys-success)">${fmt(m.valor_liquido || 0)}</td>
+            <td class="mono" style="text-align:right;color:var(--text-muted)">${m.semanas || 0} sem</td>
+          </tr>`;
+        }).join('');
+      }).join('');
+
+      const totAtivos = (statusGroups['ativo'] || []).length;
+      const totNovas = (statusGroups['nova_locacao'] || []).length;
+      const totDistrato = (statusGroups['distrato'] || []).length;
+      const totSem = (statusGroups['sem_locacao'] || []).length;
+
+      document.getElementById('modal-detail-body').innerHTML = `
+        <div style="padding:0">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px 12px;border-bottom:1px solid var(--border)">
+            <div>
+              <div style="font-size:18px;font-weight:800;font-family:var(--font-brand)">Detalhamento da Frota</div>
+              <div style="font-size:12px;color:var(--text-dim);margin-top:2px">${perLabel} · ${L.length} veículos</div>
+            </div>
+            <button class="modal-close" onclick="closeModal('modal-detail')" style="position:static">✕</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg-card2)">
+            <div><div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Ativos</div><div style="font-size:20px;font-weight:700;color:var(--sys-success);font-family:'Space Mono',monospace">${totAtivos}</div></div>
+            <div><div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Nova Locação</div><div style="font-size:20px;font-weight:700;color:var(--sys-warning);font-family:'Space Mono',monospace">${totNovas}</div></div>
+            <div><div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Distrato</div><div style="font-size:20px;font-weight:700;color:var(--sys-error);font-family:'Space Mono',monospace">${totDistrato}</div></div>
+            <div><div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Sem Locação</div><div style="font-size:20px;font-weight:700;color:var(--text-muted);font-family:'Space Mono',monospace">${totSem}</div></div>
+          </div>
+          <div style="max-height:55vh;overflow-y:auto;padding:0 12px 16px">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px">
+              <thead><tr style="position:sticky;top:0;background:var(--bg-card);z-index:1">
+                <th style="text-align:left;padding:8px 6px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Placa</th>
+                <th style="text-align:left;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Modelo</th>
+                <th style="text-align:center;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Status</th>
+                <th style="text-align:right;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Líquido</th>
+                <th style="text-align:right;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Semanas</th>
+              </tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </div>`;
+      openModal('modal-detail');
+    }
+
+    function showReceitaDetail() {
+      const L = (STATE.locacoes || []).slice().sort((a, b) => (b.valor_liquido || 0) - (a.valor_liquido || 0));
+      const per = STATE.periodos.find(p => p.id === STATE.periodoId);
+      const perLabel = per ? per.label : STATE.periodoId;
+      const totalLiq = L.reduce((s, m) => s + (m.valor_liquido || 0), 0);
+      const totalRep = L.reduce((s, m) => s + (m.valor_repassar || 0), 0);
+      const totalPrep = L.reduce((s, m) => s + (m.valor_preparacao || 0), 0);
+      const mediaLiq = L.length ? totalLiq / L.length : 0;
+
+      const rows = L.map((m, i) => {
+        const bgRow = i % 2 === 0 ? 'var(--bg-card)' : 'var(--bg-card2)';
+        return `<tr style="background:${bgRow}">
+          <td style="font-family:'Space Mono',monospace;color:#f59e0b;font-weight:600;font-size:12px;cursor:pointer" onclick="closeModal('modal-detail');setTimeout(()=>showDetail('${m.placa}'),150)">${m.placa}</td>
+          <td style="font-size:11px;color:var(--text-muted)">${m.modelo || ''}</td>
+          <td class="mono" style="text-align:right;color:var(--text-muted)">${fmt(m.valor_repassar || 0)}</td>
+          <td class="mono" style="text-align:right;color:#f87171">${fmt(m.valor_preparacao || 0)}</td>
+          <td class="mono" style="text-align:right;font-weight:700;color:${(m.valor_liquido || 0) >= 0 ? 'var(--sys-success)' : 'var(--sys-error)'}">${fmt(m.valor_liquido || 0)}</td>
+          <td><span class="badge ${BADGE[m.status] || ''}" style="font-size:10px">${BADGE_LBL[m.status] || m.status}</span></td>
+        </tr>`;
+      }).join('');
+
+      document.getElementById('modal-detail-body').innerHTML = `
+        <div style="padding:0">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px 12px;border-bottom:1px solid var(--border)">
+            <div>
+              <div style="font-size:18px;font-weight:800;font-family:var(--font-brand)">Detalhamento de Receita</div>
+              <div style="font-size:12px;color:var(--text-dim);margin-top:2px">${perLabel} · ${L.length} motos</div>
+            </div>
+            <button class="modal-close" onclick="closeModal('modal-detail')" style="position:static">✕</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg-card2)">
+            <div><div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Repasse Bruto</div><div style="font-size:18px;font-weight:700;color:#3b82f6;font-family:'Space Mono',monospace">${fmt(totalRep)}</div></div>
+            <div><div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Preparação</div><div style="font-size:18px;font-weight:700;color:#f87171;font-family:'Space Mono',monospace">${fmt(totalPrep)}</div></div>
+            <div><div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Líquido Total</div><div style="font-size:18px;font-weight:700;color:var(--sys-success);font-family:'Space Mono',monospace">${fmt(totalLiq)}</div></div>
+            <div><div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Média / Moto</div><div style="font-size:18px;font-weight:700;color:var(--text-main);font-family:'Space Mono',monospace">${fmt(mediaLiq)}</div></div>
+          </div>
+          <div style="max-height:55vh;overflow-y:auto;padding:0 12px 16px">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px">
+              <thead><tr style="position:sticky;top:0;background:var(--bg-card);z-index:1">
+                <th style="text-align:left;padding:8px 6px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Placa</th>
+                <th style="text-align:left;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Modelo</th>
+                <th style="text-align:right;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Repasse</th>
+                <th style="text-align:right;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Preparação</th>
+                <th style="text-align:right;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Líquido</th>
+                <th style="text-align:center;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Status</th>
+              </tr></thead>
+              <tbody>${rows}</tbody>
+              <tfoot><tr style="border-top:2px solid var(--border);font-weight:700">
+                <td style="padding:10px 6px" colspan="2">TOTAL</td>
+                <td style="text-align:right;padding:10px 4px;color:var(--text-muted);font-family:'Space Mono',monospace">${fmt(totalRep)}</td>
+                <td style="text-align:right;padding:10px 4px;color:#f87171;font-family:'Space Mono',monospace">${fmt(totalPrep)}</td>
+                <td style="text-align:right;padding:10px 4px;color:var(--sys-success);font-family:'Space Mono',monospace">${fmt(totalLiq)}</td>
+                <td></td>
+              </tr></tfoot>
+            </table>
+          </div>
+        </div>`;
+      openModal('modal-detail');
+    }
+
+    function showRoiDetail() {
+      const invMap = window.GLOBAL_INVENTARIO || {};
+      const L = STATE.locacoes || [];
+      const C = STATE.custos || [];
+      const per = STATE.periodos.find(p => p.id === STATE.periodoId);
+      const perLabel = per ? per.label : STATE.periodoId;
+
+      const receitaMensal = L.reduce((s, m) => s + (m.valor_liquido || 0), 0);
+      const custoMensal = C.reduce((s, c) => s + (parseFloat(c.valor) || 0), 0);
+      let totalCompra = 0, totalManut = 0, totalRec = 0;
+      for (const k in invMap) {
+        if (invMap.hasOwnProperty(k)) {
+          totalCompra += (invMap[k].compra || 0);
+          totalManut += (invMap[k].manutencao || 0);
+          totalRec += (invMap[k].receita || 0);
+        }
+      }
+      const multasTotal = (MULTAS.resultados || []).reduce((a, o) => a + multaTotVal(o), 0);
+      const lucroMensal = receitaMensal - custoMensal;
+      const lucroAcum = totalRec - totalManut - multasTotal;
+      const roiMes = totalCompra > 0 ? (lucroMensal / totalCompra) * 100 : 0;
+      const roiAcum = totalCompra > 0 ? (lucroAcum / totalCompra) * 100 : 0;
+
+      document.getElementById('modal-detail-body').innerHTML = `
+        <div style="padding:0">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px 12px;border-bottom:1px solid var(--border)">
+            <div>
+              <div style="font-size:18px;font-weight:800;font-family:var(--font-brand)">Detalhamento de ROI</div>
+              <div style="font-size:12px;color:var(--text-dim);margin-top:2px">${perLabel}</div>
+            </div>
+            <button class="modal-close" onclick="closeModal('modal-detail')" style="position:static">✕</button>
+          </div>
+          <div style="padding:24px;display:flex;flex-direction:column;gap:20px">
+            <div class="enterprise-card" style="padding:20px;margin-bottom:0">
+              <div style="font-size:13px;font-weight:700;text-transform:uppercase;color:var(--text-dim);margin-bottom:16px">ROI Mensal — ${perLabel}</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+                <div><div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Receita Líquida</div><div class="mono" style="font-size:18px;font-weight:700;color:var(--sys-success)">${fmt(receitaMensal)}</div></div>
+                <div><div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Custos do Mês</div><div class="mono" style="font-size:18px;font-weight:700;color:var(--sys-error)">${fmt(custoMensal)}</div></div>
+                <div><div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Lucro Mensal</div><div class="mono" style="font-size:18px;font-weight:700;color:${lucroMensal >= 0 ? 'var(--sys-success)' : 'var(--sys-error)'}">${fmt(lucroMensal)}</div></div>
+              </div>
+              <div style="margin-top:16px;padding:12px;background:var(--bg-base);border-radius:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:12px;color:var(--text-muted)">Valor Total da Frota (Compra)</span>
+                <span class="mono" style="font-size:16px;font-weight:700;color:var(--text-main)">${fmt(totalCompra)}</span>
+              </div>
+              <div style="margin-top:8px;padding:12px;background:${roiMes >= 0 ? 'var(--sys-success-bg)' : 'var(--sys-error-bg)'};border-radius:8px;display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:12px;font-weight:700">ROI do Mês</span>
+                <span class="mono" style="font-size:22px;font-weight:800;color:${roiMes >= 0 ? 'var(--sys-success)' : 'var(--sys-error)'}">${roiMes.toFixed(1)}%</span>
+              </div>
+            </div>
+            <div class="enterprise-card" style="padding:20px;margin-bottom:0">
+              <div style="font-size:13px;font-weight:700;text-transform:uppercase;color:var(--text-dim);margin-bottom:16px">ROI Acumulado (Global)</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+                <div><div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Receita Acumulada</div><div class="mono" style="font-size:18px;font-weight:700;color:var(--sys-success)">${fmt(totalRec)}</div></div>
+                <div><div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Manutenção Acum.</div><div class="mono" style="font-size:18px;font-weight:700;color:var(--sys-error)">${fmt(totalManut)}</div></div>
+                <div><div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Multas Acum.</div><div class="mono" style="font-size:18px;font-weight:700;color:var(--sys-warning)">${fmt(multasTotal)}</div></div>
+              </div>
+              <div style="margin-top:16px;padding:12px;background:${roiAcum >= 0 ? 'var(--sys-success-bg)' : 'var(--sys-error-bg)'};border-radius:8px;display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:12px;font-weight:700">ROI Acumulado</span>
+                <span class="mono" style="font-size:22px;font-weight:800;color:${roiAcum >= 0 ? 'var(--sys-success)' : 'var(--sys-error)'}">${roiAcum.toFixed(1)}%</span>
+              </div>
+              <div style="font-size:11px;color:var(--text-dim);margin-top:8px">Fórmula: (Receita Acum. - Manutenção - Multas) / Valor de Compra da Frota × 100</div>
+            </div>
+          </div>
+        </div>`;
+      openModal('modal-detail');
+    }
+
+    function showCustosDetail() {
+      const C = STATE.custos || [];
+      const per = STATE.periodos.find(p => p.id === STATE.periodoId);
+      const perLabel = per ? per.label : STATE.periodoId;
+      const totalCusto = C.reduce((s, c) => s + (parseFloat(c.valor) || 0), 0);
+
+      const categorias = {};
+      C.forEach(c => {
+        const cat = c.categoria || c.tipo || 'Outros';
+        if (!categorias[cat]) categorias[cat] = { total: 0, count: 0 };
+        categorias[cat].total += (parseFloat(c.valor) || 0);
+        categorias[cat].count++;
+      });
+      const sortedCats = Object.entries(categorias).sort((a, b) => b[1].total - a[1].total);
+
+      const rows = C.slice().sort((a, b) => (parseFloat(b.valor) || 0) - (parseFloat(a.valor) || 0)).map((c, i) => {
+        const bgRow = i % 2 === 0 ? 'var(--bg-card)' : 'var(--bg-card2)';
+        return `<tr style="background:${bgRow}">
+          <td style="font-size:11px;color:var(--text-muted)">${c.descricao || c.tipo || '—'}</td>
+          <td style="font-size:11px;color:var(--text-muted)">${c.categoria || c.tipo || '—'}</td>
+          <td style="font-family:'Space Mono',monospace;color:#f59e0b;font-size:12px">${c.placa || '—'}</td>
+          <td class="mono" style="text-align:right;font-weight:700;color:var(--sys-error)">${fmt(parseFloat(c.valor) || 0)}</td>
+        </tr>`;
+      }).join('');
+
+      document.getElementById('modal-detail-body').innerHTML = `
+        <div style="padding:0">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px 12px;border-bottom:1px solid var(--border)">
+            <div>
+              <div style="font-size:18px;font-weight:800;font-family:var(--font-brand)">Detalhamento de Custos</div>
+              <div style="font-size:12px;color:var(--text-dim);margin-top:2px">${perLabel} · ${C.length} registros · Total ${fmt(totalCusto)}</div>
+            </div>
+            <button class="modal-close" onclick="closeModal('modal-detail')" style="position:static">✕</button>
+          </div>
+          ${sortedCats.length ? `
+          <div style="padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg-card2)">
+            <div style="font-size:10px;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;font-weight:700">Por Categoria</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              ${sortedCats.map(([cat, info]) => `
+                <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:8px 14px;display:flex;flex-direction:column;gap:2px">
+                  <div style="font-size:11px;font-weight:600;color:var(--text-main)">${cat}</div>
+                  <div style="font-size:13px;font-weight:700;color:var(--sys-error);font-family:'Space Mono',monospace">${fmt(info.total)}</div>
+                  <div style="font-size:10px;color:var(--text-dim)">${info.count} registro${info.count > 1 ? 's' : ''}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>` : ''}
+          <div style="max-height:55vh;overflow-y:auto;padding:0 12px 16px">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px">
+              <thead><tr style="position:sticky;top:0;background:var(--bg-card);z-index:1">
+                <th style="text-align:left;padding:8px 6px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Descrição</th>
+                <th style="text-align:left;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Categoria</th>
+                <th style="text-align:left;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Placa</th>
+                <th style="text-align:right;padding:8px 4px;border-bottom:2px solid var(--border);font-size:10px;text-transform:uppercase;color:var(--text-dim)">Valor</th>
+              </tr></thead>
+              <tbody>${rows}</tbody>
+              <tfoot><tr style="border-top:2px solid var(--border);font-weight:700">
+                <td style="padding:10px 6px" colspan="3">TOTAL (${C.length} registros)</td>
+                <td style="text-align:right;padding:10px 4px;color:var(--sys-error);font-family:'Space Mono',monospace">${fmt(totalCusto)}</td>
+              </tr></tfoot>
+            </table>
+          </div>
+        </div>`;
+      openModal('modal-detail');
+    }
+
     function renderDashboard() {
       const R = MULTAS.resultados || [];
       const hasFinesData = R.length > 0;
@@ -5481,38 +6060,45 @@ Regras:
             </div>
             
             <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:16px;margin-bottom:10px">
-              <div class="enterprise-card" style="padding:16px;margin-bottom:0">
+              <div class="enterprise-card" style="padding:16px;margin-bottom:0;cursor:pointer;transition:border-color .2s" onclick="showVeiculosDetail()" onmouseenter="this.style.borderColor='var(--sys-accent)'" onmouseleave="this.style.borderColor=''">
                 <div class="text-label" style="font-size:11px;text-transform:uppercase;margin-bottom:8px">Veículos Ativos</div>
                 <div style="font-size:24px;font-weight:700;color:var(--text-main);font-family:'Space Mono',monospace">${totalAtivas}<span style="font-size:14px;color:var(--text-dim)">/${totalFrota}</span></div>
-                <div style="font-size:11px;color:var(--sys-warning);margin-top:4px">${distratoTx} distratos no ciclo</div>
+                <div style="font-size:11px;color:var(--sys-warning);margin-top:4px">${distratoTx} distratos no ciclo · <span style="color:var(--accent)">clique para detalhar</span></div>
               </div>
-              <div class="enterprise-card" style="padding:16px;margin-bottom:0">
+              <div class="enterprise-card" style="padding:16px;margin-bottom:0;cursor:pointer;transition:border-color .2s" onclick="showReceitaDetail()" onmouseenter="this.style.borderColor='var(--sys-success)'" onmouseleave="this.style.borderColor=''">
                 <div class="text-label" style="font-size:11px;text-transform:uppercase;margin-bottom:8px">Receita Líquida Mensal</div>
                 <div style="font-size:24px;font-weight:700;color:var(--sys-success);font-family:'Space Mono',monospace">${fmt(receitaMensal)}</div>
-                <div style="font-size:11px;color:var(--text-dim);margin-top:4px">Após preparações de frota</div>
+                <div style="font-size:11px;color:var(--text-dim);margin-top:4px">Após preparações · <span style="color:var(--accent)">clique para detalhar</span></div>
               </div>
-              <div class="enterprise-card" style="padding:16px;margin-bottom:0">
+              <div class="enterprise-card" style="padding:16px;margin-bottom:0;cursor:pointer;transition:border-color .2s" onclick="showRepasseDetail()" onmouseenter="this.style.borderColor='var(--sys-warning)'" onmouseleave="this.style.borderColor=''">
                 <div class="text-label" style="font-size:11px;text-transform:uppercase;margin-bottom:8px">Repasse Custo Origem</div>
                 <div style="font-size:24px;font-weight:700;color:var(--sys-warning);font-family:'Space Mono',monospace">${fmt(repasseOrigem)}</div>
-                <div style="font-size:11px;color:var(--text-dim);margin-top:4px">Total bruto faturado gerado</div>
+                <div style="font-size:11px;color:var(--text-dim);margin-top:4px">Total bruto faturado gerado · <span style="color:var(--accent)">clique para detalhar</span></div>
               </div>
-              <div class="enterprise-card" style="padding:16px;margin-bottom:0;background:var(--sys-neutral-bg)">
+              <div class="enterprise-card" style="padding:16px;margin-bottom:0;background:var(--sys-neutral-bg);cursor:pointer;transition:border-color .2s" onclick="showRoiDetail()" onmouseenter="this.style.borderColor='var(--sys-accent)'" onmouseleave="this.style.borderColor=''">
                 <div class="text-label" style="font-size:11px;text-transform:uppercase;margin-bottom:8px;color:var(--text-main)">ROI do Mês (% Frotas)</div>
                 <div style="font-size:24px;font-weight:700;color:${roiMensal >= 0 ? 'var(--sys-success)' : 'var(--sys-error)'};font-family:'Space Mono',monospace">${roiMensal.toFixed(1)}%</div>
-                <div style="font-size:11px;color:var(--text-dim);margin-top:4px">Lucro Mensal / Valor Frota</div>
+                <div style="font-size:11px;color:var(--text-dim);margin-top:4px">Lucro / Valor Frota · <span style="color:var(--accent)">clique para detalhar</span></div>
               </div>
-              <div class="enterprise-card" style="padding:16px;margin-bottom:0;background:var(--bg-base);border:2px solid var(--border)">
+              <div class="enterprise-card" style="padding:16px;margin-bottom:0;background:var(--bg-base);border:2px solid var(--border);cursor:pointer;transition:border-color .2s" onclick="showRoiDetail()" onmouseenter="this.style.borderColor='var(--sys-accent)'" onmouseleave="this.style.borderColor=''">
                 <div class="text-label" style="font-size:11px;text-transform:uppercase;margin-bottom:8px;color:var(--text-main)">ROI Acumulado (Global)</div>
                 <div style="font-size:24px;font-weight:700;color:${roiAcumulado >= 0 ? 'var(--sys-success)' : 'var(--sys-error)'};font-family:'Space Mono',monospace">${roiAcumulado.toFixed(1)}%</div>
-                <div style="font-size:11px;color:var(--text-dim);margin-top:4px">Histórico descontando Multas e Custos</div>
+                <div style="font-size:11px;color:var(--text-dim);margin-top:4px">Descontando Multas e Custos · <span style="color:var(--accent)">detalhar</span></div>
               </div>
-              <div class="enterprise-card" style="padding:16px;margin-bottom:0">
+              <div class="enterprise-card" style="padding:16px;margin-bottom:0;cursor:pointer;transition:border-color .2s" onclick="showCustosDetail()" onmouseenter="this.style.borderColor='var(--sys-error)'" onmouseleave="this.style.borderColor=''">
                 <div class="text-label" style="font-size:11px;text-transform:uppercase;margin-bottom:8px">Custos Cadastrados</div>
                 <div style="font-size:24px;font-weight:700;color:var(--sys-error);font-family:'Space Mono',monospace">${C.length}</div>
-                <div style="font-size:11px;color:var(--text-dim);margin-top:4px">Despesas operacionais e manutenção</div>
+                <div style="font-size:11px;color:var(--text-dim);margin-top:4px">Operacional e manutenção · <span style="color:var(--accent)">detalhar</span></div>
               </div>
             </div>
-        
+
+        <div class="enterprise-card" style="padding:20px;margin-bottom:10px">
+          <div class="text-label" style="text-transform:uppercase;font-size:11px;margin-bottom:12px">Faturamento Mensal (Evolução)</div>
+          <div style="width:100%;height:300px;position:relative">
+            <canvas id="chartFaturamentoMensal"></canvas>
+          </div>
+        </div>
+
         ${!hasFinesData ? `
         <div class="alert alert-warn" style="margin-bottom:20px">
           💡 Os gráficos de infrações estão vazios. Acesse a aba <strong>Multas</strong> e processe a frota no Detran para ativar a inteligência preditiva.
@@ -5545,9 +6131,98 @@ Regras:
 
       document.getElementById("content").innerHTML = html;
 
+      setTimeout(initFaturamentoChart, 50);
       if (hasFinesData) {
         setTimeout(initMultasCharts, 50);
       }
+    }
+
+    let chartFaturamento = null;
+    function initFaturamentoChart() {
+      if (chartFaturamento) { chartFaturamento.destroy(); chartFaturamento = null; }
+      const canvas = document.getElementById('chartFaturamentoMensal');
+      if (!canvas) return;
+
+      const totais = STATE.periodosTotais || {};
+      const periodos = STATE.periodos.slice().sort((a, b) => {
+        const ka = `${a.ano}-${String(a.mes).padStart(2, '0')}`;
+        const kb = `${b.ano}-${String(b.mes).padStart(2, '0')}`;
+        return ka.localeCompare(kb);
+      });
+
+      const labels = periodos.map(p => p.label);
+      const dataLiq = periodos.map(p => {
+        const k = `${p.ano}-${String(p.mes).padStart(2, '0')}`;
+        return (totais[k] || {}).liquido || 0;
+      });
+      const dataRep = periodos.map(p => {
+        const k = `${p.ano}-${String(p.mes).padStart(2, '0')}`;
+        return (totais[k] || {}).repassar || 0;
+      });
+
+      const style = getComputedStyle(document.documentElement);
+      const textColor = style.getPropertyValue('--text-muted').trim() || '#6b7280';
+      const borderColor = style.getPropertyValue('--border').trim() || '#e5e7eb';
+
+      chartFaturamento = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Repasse Bruto',
+              data: dataRep,
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59,130,246,0.08)',
+              borderWidth: 2,
+              pointBackgroundColor: '#3b82f6',
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              tension: 0.3,
+              fill: true,
+              order: 2
+            },
+            {
+              label: 'Líquido',
+              data: dataLiq,
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16,185,129,0.12)',
+              borderWidth: 2,
+              pointBackgroundColor: '#10b981',
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              tension: 0.3,
+              fill: true,
+              order: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          scales: {
+            x: { ticks: { color: textColor, font: { size: 11 } }, grid: { display: false } },
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: textColor,
+                font: { size: 11 },
+                callback: v => 'R$ ' + (v / 1000).toFixed(0) + 'k'
+              },
+              grid: { color: borderColor }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: ctx => ctx.dataset.label + ': ' + fmt(ctx.parsed.y)
+              }
+            },
+            legend: { labels: { color: textColor, boxWidth: 12, font: { size: 11 } } }
+          }
+        }
+      });
     }
 
     let multasCharts = {};
@@ -6262,6 +6937,30 @@ Regras:
 
         STATE.periodoId = STATE.periodos[STATE.periodos.length - 1].id;
         renderPeriodBar();
+
+        // Carrega totais de TODOS os períodos para relatório financeiro
+        try {
+          const allDbIds = pList.map(p => p.id);
+          const { data: allLocs } = await db.from("locacoes")
+            .select("periodo_id,valor_repassar,valor_preparacao,valor_distrato,valor_liquido")
+            .in("periodo_id", allDbIds);
+          STATE.periodosTotais = {};
+          for (const p of pList) {
+            const pKey = `${p.ano}-${String(p.mes).padStart(2, "0")}`;
+            const locs = (allLocs || []).filter(l => l.periodo_id === p.id);
+            STATE.periodosTotais[pKey] = {
+              repassar: locs.reduce((s, l) => s + (l.valor_repassar || 0), 0),
+              preparacao: locs.reduce((s, l) => s + (l.valor_preparacao || 0), 0),
+              distrato: locs.reduce((s, l) => s + (l.valor_distrato || 0), 0),
+              liquido: locs.reduce((s, l) => s + (l.valor_liquido || 0), 0),
+              count: locs.length,
+            };
+          }
+          debugLog(`periodosTotais: ${JSON.stringify(STATE.periodosTotais)}`, 'db');
+        } catch (eTotais) {
+          debugLog(`⚠ periodosTotais falhou: ${eTotais.message}`, 'warn');
+          STATE.periodosTotais = {};
+        }
 
         // Dispara o fetch final dos dados
         await loadPeriodoData();
