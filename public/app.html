@@ -2225,7 +2225,7 @@
           (opcional)</div>
         <div class="form-row" style="margin-bottom:10px">
           <label class="form-label">URL do servidor Python</label>
-          <input id="cfg-srv-url" class="form-input" placeholder="http://localhost:2222" value="http://localhost:2222"
+          <input id="cfg-srv-url" class="form-input" placeholder="(usa o servidor atual automaticamente)"
             oninput="localStorage.setItem('mg_srv_url',this.value)">
         </div>
         <div class="alert alert-warn" style="font-size:11px;padding:10px;margin-bottom:10px">
@@ -2296,10 +2296,11 @@
     // ── URL do servidor DETRAN (único item configurável pelo usuário) ─
     function getSrvUrl() {
       const stored = localStorage.getItem("mg_srv_url");
-      // Corrige portas antigas/erradas para o padrão 2222
-      if (!stored || stored === "http://localhost:5000" || stored === "http://localhost:3000") {
-        localStorage.setItem("mg_srv_url", "http://localhost:2222");
-        return "http://localhost:2222";
+      const defaultUrl = window.location.origin;
+      // Corrige valores antigos de localhost para usar a origem atual da página
+      if (!stored || stored === "http://localhost:5000" || stored === "http://localhost:3000" || stored === "http://localhost:2222") {
+        localStorage.setItem("mg_srv_url", defaultUrl);
+        return defaultUrl;
       }
       return stored;
     }
@@ -2814,6 +2815,10 @@
       } else {
         debugLog('⚠ Chave Anthropic não encontrada no localStorage', 'warn');
       }
+
+      // Preencher input de URL do servidor com valor atual (nunca mostrar localhost)
+      const cfgInput = document.getElementById("cfg-srv-url");
+      if (cfgInput) cfgInput.value = getSrvUrl();
 
       pingServer();
       setInterval(pingServer, 30000);
@@ -6770,7 +6775,7 @@ Regras:
       debugLog('── Configuração ──', 'db');
       debugLog(`SUPA_URL: ${SUPA_URL}`, 'db');
       debugLog(`SUPA_KEY: ${SUPA_KEY.slice(0, 30)}...`, 'db');
-      const srvUrl = localStorage.getItem('mg_srv_url') || 'http://localhost:2222';
+      const srvUrl = localStorage.getItem('mg_srv_url') || window.location.origin;
       debugLog(`SRV_URL: ${srvUrl}`, 'db');
       const apiKey = localStorage.getItem('mg_anthropic_key');
       debugLog(`ANTHROPIC_KEY: ${apiKey ? apiKey.slice(0, 20) + '...' : 'não definida'}`, apiKey ? 'success' : 'warn');
