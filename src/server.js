@@ -14,7 +14,7 @@ const { exec } = require('child_process');
 
 // ── Scraping Engines ────────────────────────────────────────────────
 
-const PORT = 2222;
+const PORT = process.env.PORT || 30001;
 const CACHE_TTL = 3600 * 1000;
 const DELAY_LOTE = 3000;
 const BASE_URL = 'https://sistemas.detran.ce.gov.br/central'; // novo portal SPA
